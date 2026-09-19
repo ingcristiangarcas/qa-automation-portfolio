@@ -31,6 +31,7 @@ jobs:
       - name: Run Postman collection with Newman
         run: |
           newman run collections/pokeapi.postman_collection.json \
+            -e environments/pokeapi.postman_environment.json \
             --reporters cli,htmlextra \
             --reporter-htmlextra-export report.html
 
