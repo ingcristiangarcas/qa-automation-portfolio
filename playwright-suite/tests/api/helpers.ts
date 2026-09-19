@@ -20,6 +20,12 @@ export async function getWithRetry(
       return response;
     }
 
+    // eslint-disable-next-line no-console
+    console.log(
+      `[getWithRetry] attempt ${attempt} for ${url} -> status ${response.status()}, ` +
+        `content-type "${contentType}", body preview: ${(await response.text()).slice(0, 300)}`,
+    );
+
     lastResponse = response;
     await new Promise((resolve) => setTimeout(resolve, attempt * 500));
   }
