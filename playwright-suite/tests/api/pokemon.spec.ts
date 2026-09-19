@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { getWithRetry } from './helpers';
 
 /**
  * API tests against the public PokéAPI (https://pokeapi.co), showcasing
@@ -6,7 +7,7 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('PokeAPI - pokemon endpoint', () => {
   test('GET /pokemon/pikachu returns expected core fields', async ({ request }) => {
-    const response = await request.get('/pokemon/pikachu');
+    const response = await getWithRetry(request, '/pokemon/pikachu');
 
     expect(response.status()).toBe(200);
 
@@ -17,13 +18,13 @@ test.describe('PokeAPI - pokemon endpoint', () => {
   });
 
   test('GET /pokemon/{unknown} returns 404', async ({ request }) => {
-    const response = await request.get('/pokemon/not-a-real-pokemon');
+    const response = await getWithRetry(request, '/pokemon/not-a-real-pokemon');
 
     expect(response.status()).toBe(404);
   });
 
   test('GET /pokemon?limit=10 returns exactly 10 results', async ({ request }) => {
-    const response = await request.get('/pokemon?limit=10');
+    const response = await getWithRetry(request, '/pokemon?limit=10');
     const body = await response.json();
 
     expect(response.status()).toBe(200);
