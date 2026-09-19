@@ -1,0 +1,114 @@
+{
+  "info": {
+    "name": "PokeAPI - Newman Collection",
+    "description": "Postman collection for regression-style API testing against the public PokéAPI (https://pokeapi.co), designed to run headlessly via Newman in CI.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://pokeapi.co/api/v2" }
+  ],
+  "item": [
+    {
+      "name": "GET pokemon/pikachu returns 200 with expected fields",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/pokemon/pikachu"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has expected name and id', function () {",
+              "    const body = pm.response.json();",
+              "    pm.expect(body.name).to.eql('pikachu');",
+              "    pm.expect(body.id).to.eql(25);",
+              "});",
+              "",
+              "pm.test('Pikachu is electric type', function () {",
+              "    const body = pm.response.json();",
+              "    const types = body.types.map(t => t.type.name);",
+              "    pm.expect(types).to.include('electric');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET pokemon/{unknown} returns 404",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/pokemon/not-a-real-pokemon"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 404 for unknown pokemon', function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET pokemon?limit=10 returns exactly 10 results",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/pokemon?limit=10"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Returns exactly 10 results', function () {",
+              "    const body = pm.response.json();",
+              "    pm.expect(body.results.length).to.eql(10);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET ability/stench returns pokemon list",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/ability/stench"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Ability has at least one associated pokemon', function () {",
+              "    const body = pm.response.json();",
+              "    pm.expect(body.pokemon.length).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+name: Selenium Suite
+
+on:
+  push:
+    paths:
+      - 'selenium-suite/**'
+      - '.github/workflows/selenium.yml'
+  pull_request:
+    paths:
+      - 'selenium-suite/**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: selenium-suite
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Selenium tests (headless Chrome)
+        run: pytest
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-report
+          path: selenium-suite/report.html

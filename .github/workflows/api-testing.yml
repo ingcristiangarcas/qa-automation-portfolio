@@ -1,0 +1,42 @@
+name: API Testing (Newman)
+
+on:
+  push:
+    paths:
+      - 'api-testing/**'
+      - '.github/workflows/api-testing.yml'
+  pull_request:
+    paths:
+      - 'api-testing/**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: api-testing
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Newman and HTML reporter
+        run: npm install -g newman newman-reporter-htmlextra
+
+      - name: Run Postman collection with Newman
+        run: |
+          newman run collections/pokeapi.postman_collection.json \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export report.html
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-report
+          path: api-testing/report.html
