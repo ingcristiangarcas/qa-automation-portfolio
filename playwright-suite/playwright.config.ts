@@ -27,7 +27,8 @@ export default defineConfig({
         // GitHub-hosted runners share IPs that PokeAPI's edge network
         // occasionally challenges; a descriptive User-Agent avoids that.
         extraHTTPHeaders: {
-          'User-Agent': 'qa-automation-portfolio-playwright-suite',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
           Accept: 'application/json',
         },
       },
