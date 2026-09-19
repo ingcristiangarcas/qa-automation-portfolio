@@ -22,8 +22,9 @@ export async function getWithRetry(
 
     // eslint-disable-next-line no-console
     console.log(
-      `[getWithRetry] attempt ${attempt} for ${url} -> status ${response.status()}, ` +
-        `content-type "${contentType}", body preview: ${(await response.text()).slice(0, 300)}`,
+      `[getWithRetry] attempt ${attempt} for ${url} -> resolved URL ${response.url()}, ` +
+        `status ${response.status()}, content-type "${contentType}", ` +
+        `body preview: ${(await response.text()).slice(0, 300)}`,
     );
 
     lastResponse = response;
