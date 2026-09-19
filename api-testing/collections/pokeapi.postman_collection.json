@@ -1,15 +1,12 @@
 {
   "info": {
     "name": "PokeAPI - Newman Collection",
-    "description": "Postman collection for regression-style API testing against the public PokéAPI (https://pokeapi.co), designed to run headlessly via Newman in CI.",
+    "description": "Postman collection for contract and regression-style API testing against the public PokéAPI (https://pokeapi.co), designed to run headlessly via Newman in CI. Uses an external environment file for baseUrl, JSON schema validation, response-time budgets, and a chained request that reuses data extracted from a previous response.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "variable": [
-    { "key": "baseUrl", "value": "https://pokeapi.co/api/v2" }
-  ],
   "item": [
     {
-      "name": "GET pokemon/pikachu returns 200 with expected fields",
+      "name": "GET pokemon/pikachu returns 200 with expected schema and fields",
       "request": {
         "method": "GET",
         "url": "{{baseUrl}}/pokemon/pikachu"
@@ -20,8 +17,24 @@
           "script": {
             "type": "text/javascript",
             "exec": [
+              "const schema = {",
+              "    type: 'object',",
+              "    required: ['id', 'name', 'types', 'abilities', 'stats'],",
+              "    properties: {",
+              "        id: { type: 'number' },",
+              "        name: { type: 'string' },",
+              "        types: { type: 'array' },",
+              "        abilities: { type: 'array' },",
+              "        stats: { type: 'array' }",
+              "    }",
+              "};",
+              "",
               "pm.test('Status code is 200', function () {",
               "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response matches expected JSON schema', function () {",
+              "    pm.response.to.have.jsonSchema(schema);",
               "});",
               "",
               "pm.test('Response has expected name and id', function () {",
@@ -34,6 +47,10 @@
               "    const body = pm.response.json();",
               "    const types = body.types.map(t => t.type.name);",
               "    pm.expect(types).to.include('electric');",
+              "});",
+              "",
+              "pm.test('Response time is below 800ms', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(800);",
               "});"
             ]
           }
@@ -54,6 +71,10 @@
             "exec": [
               "pm.test('Status code is 404 for unknown pokemon', function () {",
               "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Response time is below 800ms', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(800);",
               "});"
             ]
           }
@@ -86,7 +107,7 @@
       ]
     },
     {
-      "name": "GET ability/stench returns pokemon list",
+      "name": "GET ability/stench returns pokemon list (chain step 1: capture a pokemon name)",
       "request": {
         "method": "GET",
         "url": "{{baseUrl}}/ability/stench"
@@ -104,11 +125,45 @@
               "pm.test('Ability has at least one associated pokemon', function () {",
               "    const body = pm.response.json();",
               "    pm.expect(body.pokemon.length).to.be.above(0);",
+              "",
+              "    pm.collectionVariables.set('chainedPokemonName', body.pokemon[0].pokemon.name);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "GET pokemon/{chainedPokemonName} returns 200 (chain step 2: use captured name)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/pokemon/{{chainedPokemonName}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('A pokemon name was captured from the previous request', function () {",
+              "    pm.expect(pm.collectionVariables.get('chainedPokemonName')).to.not.be.undefined;",
+              "});",
+              "",
+              "pm.test('Status code is 200 for the chained pokemon', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response name matches the chained pokemon name', function () {",
+              "    const body = pm.response.json();",
+              "    pm.expect(body.name).to.eql(pm.collectionVariables.get('chainedPokemonName'));",
               "});"
             ]
           }
         }
       ]
     }
+  ],
+  "variable": [
+    { "key": "chainedPokemonName", "value": "" }
   ]
 }
